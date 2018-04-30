@@ -7,6 +7,7 @@
 #include <linux/sched/deadline.h>
 #include <linux/kernel_stat.h>
 #include <linux/binfmts.h>
+#include <linux/energy_model.h>
 #include <linux/mutex.h>
 #include <linux/psi.h>
 #include <linux/spinlock.h>
@@ -652,6 +653,12 @@ struct max_cpu_capacity {
 	int cpu;
 };
 
+struct perf_domain {
+    struct em_perf_domain *obj;
+    struct perf_domain *next;
+    struct rcu_head rcu;
+};
+
 /*
  * We add the notion of a root-domain which will be used to define per-domain
  * variables. Each exclusive cpuset essentially defines an island domain by
@@ -707,6 +714,13 @@ struct root_domain {
 
 	/* First cpu with maximum and minimum original capacity */
 	int max_cap_orig_cpu, min_cap_orig_cpu;
+
+	/*
+	 * NULL-terminated list of performance domains intersecting with the
+	 * CPUs of the rd. Protected by RCU.
+	 */
+	struct perf_domain	*pd;
+
 };
 
 extern struct root_domain def_root_domain;
@@ -3186,6 +3200,14 @@ find_first_cpu_bit(struct task_struct *p, const cpumask_t *search_cpus,
 		   bool *do_rotate, struct find_first_cpu_bit_env *env);
 #else
 #define find_first_cpu_bit(...) -1
+#endif
+
+#ifdef CONFIG_SMP
+#ifdef CONFIG_ENERGY_MODEL
+#define perf_domain_span(pd) (to_cpumask(((pd)->obj->cpus)))
+#else
+#define perf_domain_span(pd) NULL
+#endif
 #endif
 
 #ifdef CONFIG_SMP

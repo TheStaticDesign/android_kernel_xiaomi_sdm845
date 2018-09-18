@@ -332,6 +332,7 @@ struct fts_ts_info {
 	bool irq_status;
 	bool dev_pm_suspend;
 	struct completion dev_pm_suspend_completion;
+	struct proc_dir_entry *input_proc;
 };
 
 struct fts_mode_switch {

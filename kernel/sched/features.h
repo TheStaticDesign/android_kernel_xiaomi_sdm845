@@ -102,3 +102,9 @@ SCHED_FEAT(FBT_STRICT_ORDER, false)
  * OFF: schedtune.prefer_idle is honored as is.
  */
 SCHED_FEAT(EAS_USE_NEED_IDLE, false)
+
+/*
+ * Use the Simplified Energy Model for EAS accounting only for
+ * active costs of CPUs.
+ */
+SCHED_FEAT(EAS_SIMPLIFIED_EM, true)

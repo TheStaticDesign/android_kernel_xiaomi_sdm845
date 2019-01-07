@@ -9,6 +9,10 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+
+ SPDX-License-Identifier: GPL-2.0-only
+*
+ * Copyright (c) 2016-2019, The Linux Foundation. All rights reserved.
  */
 
 #define pr_fmt(fmt) "%s:%s " fmt, KBUILD_MODNAME, __func__
@@ -398,6 +402,7 @@ static void register_cooling_device(struct work_struct *work)
 {
 	struct limits_dcvs_hw *hw;
 	unsigned int cpu = 0, idx = 0;
+	struct cpufreq_policy *policy = NULL;
 
 	mutex_lock(&lmh_dcvs_list_access);
 	list_for_each_entry(hw, &lmh_dcvs_hw_list, list) {
@@ -405,22 +410,23 @@ static void register_cooling_device(struct work_struct *work)
 			limits_dcvs_get_freq_limits(cpumask_first(&hw->core_map),
 			&hw->max_freq, &hw->min_freq);
 
-		if (cpumask_weight(&hw->online_mask) == 0)
-			continue;
 		idx = 0;
 		for_each_cpu(cpu, &hw->core_map) {
-			cpumask_t cpu_mask  = { CPU_BITS_NONE };
-
-			if (hw->cdev_data[idx].cdev) {
+			if (hw->cdev_data[idx].cdev ||
+				!cpumask_test_cpu(cpu, &hw->online_mask)) {
 				idx++;
 				continue;
 			}
-			cpumask_set_cpu(cpu, &cpu_mask);
+			policy = cpufreq_cpu_get(cpu);
+			if (!policy) {
+				pr_err("no policy for cpu%d\n", cpu);
+				continue;
+			}
 			hw->cdev_data[idx].max_freq = U32_MAX;
 			hw->cdev_data[idx].min_freq = 0;
 			hw->cdev_data[idx].cdev =
 					cpufreq_platform_cooling_register(
-							&cpu_mask, &cd_ops);
+							policy, &cd_ops);
 			if (IS_ERR_OR_NULL(hw->cdev_data[idx].cdev)) {
 				pr_err("CPU:%u cdev register error:%ld\n",
 					cpu, PTR_ERR(hw->cdev_data[idx].cdev));

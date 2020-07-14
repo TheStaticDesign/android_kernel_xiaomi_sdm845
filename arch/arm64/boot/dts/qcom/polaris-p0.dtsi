@@ -153,6 +153,9 @@
 		thermal,batt-level-screen-off = "0 1 1 1 3 4 5 5 5 7 9 14 16";
 	};
 
+	restart@10ac000 {
+		qcom,force-warm-reboot;
+	};
 };
 
 &labibb {

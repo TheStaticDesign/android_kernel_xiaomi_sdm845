@@ -13,6 +13,7 @@
 #include <linux/msm_drm_notify.h>
 #include <linux/slab.h>
 #include <linux/version.h>
+#include <linux/battery_saver.h>
 
 /* The sched_param struct is located elsewhere in newer kernels */
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
@@ -248,8 +249,13 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 	if (action != CPUFREQ_ADJUST)
 		return NOTIFY_OK;
 
-	/* Unboost when the screen is off */
-	if (test_bit(SCREEN_OFF, &b->state)) {
+	if (is_battery_saver_on()) {
+		policy->min = policy->cpuinfo.min_freq;
+		return NOTIFY_OK;
+	}
+
+	/* Unboost when the screen is off or battery saver is on */
+	if (is_battery_saver_on() || test_bit(SCREEN_OFF, &b->state)) {
 		policy->min = policy->cpuinfo.min_freq;
 		clear_stune_boost(b);
 		return NOTIFY_OK;

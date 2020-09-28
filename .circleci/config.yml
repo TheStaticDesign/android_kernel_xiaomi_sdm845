@@ -1,0 +1,14 @@
+version: 2.1
+jobs:
+  compile:
+   docker:
+      - image: starlight2834/ci_docker:latest
+   steps:
+      - run: apt-get -y update && apt-get -y upgrade && apt-get -y install git
+      - checkout
+      - run: bash kernel_setup.sh
+workflows:
+  version: 2.1
+  cooking:
+    jobs:
+      - compile

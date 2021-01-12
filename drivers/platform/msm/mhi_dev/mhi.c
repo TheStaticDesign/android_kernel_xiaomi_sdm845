@@ -2339,11 +2339,15 @@ bool mhi_dev_channel_has_pending_write(struct mhi_dev_client *handle)
 }
 EXPORT_SYMBOL(mhi_dev_channel_has_pending_write);
 
-int mhi_dev_close_channel(struct mhi_dev_client *handle)
+void mhi_dev_close_channel(struct mhi_dev_client *handle)
 {
 	struct mhi_dev_channel *ch;
 	int count = 0;
 	int rc = 0;
+	if (!handle) {
+		mhi_log(MHI_MSG_ERROR, "Invalid channel access:%d\n", -ENODEV);
+		return;
+	}
 
 	if (!handle) {
 		mhi_log(MHI_MSG_ERROR, "Invalid channel access:%d\n", -ENODEV);
@@ -2365,22 +2369,12 @@ int mhi_dev_close_channel(struct mhi_dev_client *handle)
 		mhi_log(MHI_MSG_ERROR, "%d writes pending for channel %d\n",
 			ch->pend_wr_count, ch->ch_id);
 
-	if (ch->state != MHI_DEV_CH_PENDING_START) {
+	if (ch->state != MHI_DEV_CH_PENDING_START)
 		if ((ch->ch_type == MHI_DEV_CH_TYPE_OUTBOUND_CHANNEL &&
-			!mhi_dev_channel_isempty(handle)) || ch->tre_loc) {
+			!mhi_dev_channel_isempty(handle)) || ch->tre_loc)
 			mhi_log(MHI_MSG_DBG,
 				"Trying to close an active channel (%d)\n",
 				ch->ch_id);
-			rc = -EAGAIN;
-			goto exit;
-		} else if (ch->tre_loc) {
-			mhi_log(MHI_MSG_ERROR,
-				"Trying to close channel (%d) when a TRE is active",
-				ch->ch_id);
-			rc = -EAGAIN;
-			goto exit;
-		}
-	}
 
 	ch->state = MHI_DEV_CH_CLOSED;
 	ch->active_client = NULL;
@@ -2391,9 +2385,9 @@ int mhi_dev_close_channel(struct mhi_dev_client *handle)
 	ch->ereqs = NULL;
 	ch->tr_events = NULL;
 	kfree(handle);
-exit:
+
 	mutex_unlock(&ch->ch_lock);
-	return rc;
+	return;
 }
 EXPORT_SYMBOL(mhi_dev_close_channel);
 
@@ -2869,6 +2863,11 @@ static void mhi_dev_enable(struct work_struct *work)
 		pr_err("%s: get mhi state failed\n", __func__);
 		return;
 	}
+	if (mhi_reset) {
+		mhi_dev_mmio_clear_reset(mhi);
+		mhi_log(MHI_MSG_VERBOSE,
+			"Cleared reset before waiting for M0\n");
+	}
 
 	while (state != MHI_DEV_M0_STATE && max_cnt < MHI_SUSPEND_TIMEOUT) {
 		/* Wait for Host to set the M0 state */
@@ -2877,6 +2876,11 @@ static void mhi_dev_enable(struct work_struct *work)
 		if (rc) {
 			pr_err("%s: get mhi state failed\n", __func__);
 			return;
+		}
+		if (mhi_reset) {
+			mhi_dev_mmio_clear_reset(mhi);
+			mhi_log(MHI_MSG_VERBOSE,
+				"Cleared reset while waiting for M0\n");
 		}
 		max_cnt++;
 	}

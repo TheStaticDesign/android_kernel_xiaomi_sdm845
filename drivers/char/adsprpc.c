@@ -2430,6 +2430,9 @@ static int fastrpc_release_current_dsp_process(struct fastrpc_file *fl)
 	ioctl.crc = NULL;
 	VERIFY(err, 0 == (err = fastrpc_internal_invoke(fl,
 		FASTRPC_MODE_PARALLEL, 1, &ioctl)));
+	if (err)
+		pr_err("adsprpc: %s: releasing DSP process failed for %s, returned 0x%x",
+					__func__, current->comm, err);
 bail:
 	return err;
 }
@@ -3730,12 +3733,24 @@ static long fastrpc_device_ioctl(struct file *file, unsigned int ioctl_num,
 	} i;
 	void *param = (char *)ioctl_param;
 	struct fastrpc_file *fl = (struct fastrpc_file *)file->private_data;
-	int size = 0, err = 0;
+	struct fastrpc_apps *me = &gfa;
+	int size = 0, err = 0, session = 0;
 	uint32_t info;
 
 	p.inv.fds = NULL;
 	p.inv.attrs = NULL;
 	p.inv.crc = NULL;
+	if (fl->spdname &&
+		!strcmp(fl->spdname, AUDIO_PDR_SERVICE_LOCATION_CLIENT_NAME)) {
+		VERIFY(err, !fastrpc_get_adsp_session(
+			AUDIO_PDR_SERVICE_LOCATION_CLIENT_NAME, &session));
+		if (err)
+			goto bail;
+		if (!me->channel[fl->cid].spd[session].ispdup) {
+			err = -ENOTCONN;
+			goto bail;
+		}
+	}
 	spin_lock(&fl->hlock);
 	if (fl->file_close == 1) {
 		err = EBADF;

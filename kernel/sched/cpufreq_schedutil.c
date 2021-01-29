@@ -269,6 +269,10 @@ static unsigned long sugov_get_util(struct sugov_cpu *sg_cpu)
 
 	/* Add DL bandwidth requirement */
 	util += sg_cpu->bw_dl;
+	
+#ifdef CONFIG_UCLAMP_TASK
+	util = uclamp_util_with(rq, util, NULL);
+#endif
 
 	return min(max, util);
 }

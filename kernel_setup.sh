@@ -8,9 +8,9 @@
 
 # Config
 CURRENT_DIR="$(pwd)"
-KERNELNAME="Common"
+KERNELNAME="Delta"
 KERNEL_DIR="$CURRENT_DIR"
-AK_REPO="https://github.com/xiaomi-sdm845-devel/AnyKernel3"
+AK_REPO="https://github.com/TheStaticDesign/AnyKernel3"
 AK_DIR="$HOME/AnyKernel3"
 TC_DIR="$HOME"
 # End Config

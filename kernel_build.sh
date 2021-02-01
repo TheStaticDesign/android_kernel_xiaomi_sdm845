@@ -55,6 +55,7 @@ build_setup() {
 
     [[ ! -d out ]] && mkdir out
     [[ -f "$KERNEL_IMG" ]] && rm "$KERNEL_IMG"
+	find . -name "*.dtb" -type f -delete
 }
 
 # build_config - builds .config file for device.

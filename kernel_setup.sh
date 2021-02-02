@@ -12,12 +12,13 @@ KERNELNAME="Common"
 KERNEL_DIR="$CURRENT_DIR"
 AK_REPO="https://github.com/xiaomi-sdm845-devel/AnyKernel3"
 AK_DIR="$HOME/AnyKernel3"
-TC_DIR="$HOME/proton-clang"
+TC_DIR="$HOME"
 # End Config
 
 # clone_tc - clones proton clang to TC_DIR
 clone_tc() {
-	git clone --depth=1 https://github.com/kdrag0n/proton-clang.git $TC_DIR
+	git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 $TC_DIR/arm64
+	git clone --depth=1 https://github.com/mvaisakh/gcc-arm  $TC_DIR/arm
 }
 
 # Clones anykernel

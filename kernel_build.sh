@@ -90,7 +90,7 @@ build_end() {
 	cd "$AK_DIR" || echo -e "\nAnykernel directory ($AK_DIR) does not exist" || exit 1
 	git clean -fd
 	mv "$KERNEL_IMG" "$AK_DIR"/zImage
-	ZIP_NAME=$KERNELNAME-$1-$COMMIT_SHA.zip
+	ZIP_NAME=$KERNELNAME-$1-$COMMIT_SHA-$(date +%Y-%m-%d_%H%M)-UTC.zip
 	zip -r9 "$ZIP_NAME" ./* -x .git README.md ./*placeholder
 	tg_pushzip "$ZIP_NAME"
 	echo -e "\n> Sent zip through Telegram.\n> File: $ZIP_NAME"

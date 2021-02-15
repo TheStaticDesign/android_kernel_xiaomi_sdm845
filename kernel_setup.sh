@@ -17,8 +17,8 @@ TC_DIR="$HOME"
 
 # clone_tc - clones proton clang to TC_DIR
 clone_tc() {
-	git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 $TC_DIR/arm64
-	git clone --depth=1 https://github.com/mvaisakh/gcc-arm  $TC_DIR/arm
+	git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 -b lld-integration $TC_DIR/arm64
+	git clone --depth=1 https://github.com/mvaisakh/gcc-arm -b lld-integration $TC_DIR/arm
 }
 
 # Clones anykernel

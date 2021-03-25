@@ -36,9 +36,11 @@ tg_sendinfo() {
 
 # tg_pushzip - uploads final zip to telegram
 tg_pushzip() {
-    curl -F document=@"$1"  "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" \
-            -F chat_id=$TG_CHAT_ID \
-            -F parse_mode=html &> /dev/null
+	MD5CHECK=$(md5sum "$1" | cut -d' ' -f1)
+	curl -F document=@"$1"  "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" \
+			-F chat_id=$TG_CHAT_ID \
+			-F caption="$2 | <b>MD5 Checksum : </b><code>$MD5CHECK</code>" \
+			-F parse_mode=html &> /dev/null
 }
 
 # tg_failed - uploads build log to telegram
@@ -100,14 +102,8 @@ build_end() {
 		ZIP_NAME="$ZIP_NAME-signed.zip"
 	fi
 
-	tg_pushzip "$ZIP_NAME"
+	tg_pushzip "$ZIP_NAME" "Time taken: <code>$((DIFF / 60))m $((DIFF % 60))s</code>"
 	echo -e "\n> Sent zip through Telegram.\n> File: $ZIP_NAME"
-	tg_buildtime
-}
-
-# tg_buildtime - send build time through tg
-tg_buildtime() {
-	tg_sendinfo "Time taken: <code>$((DIFF / 60))m $((DIFF % 60))s</code>"
 }
 
 # End function definitions

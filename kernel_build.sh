@@ -36,9 +36,11 @@ tg_sendinfo() {
 
 # tg_pushzip - uploads final zip to telegram
 tg_pushzip() {
-    curl -F document=@"$1"  "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" \
-            -F chat_id=$TG_CHAT_ID \
-            -F parse_mode=html &> /dev/null
+	MD5CHECK=$(md5sum "$1" | cut -d' ' -f1)
+	curl -F document=@"$1"  "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument" \
+			-F chat_id=$TG_CHAT_ID \
+			-F caption="$2 | <b>MD5 Checksum : </b><code>$MD5CHECK</code>" \
+			-F parse_mode=html &> /dev/null
 }
 
 # tg_failed - uploads build log to telegram
@@ -90,16 +92,18 @@ build_end() {
 	cd "$AK_DIR" || echo -e "\nAnykernel directory ($AK_DIR) does not exist" || exit 1
 	git clean -fd
 	mv "$KERNEL_IMG" "$AK_DIR"/zImage
-	ZIP_NAME=$KERNELNAME-$1-$COMMIT_SHA-$(date +%Y-%m-%d_%H%M)-UTC.zip
-	zip -r9 "$ZIP_NAME" ./* -x .git README.md ./*placeholder
-	tg_pushzip "$ZIP_NAME"
-	echo -e "\n> Sent zip through Telegram.\n> File: $ZIP_NAME"
-	tg_buildtime
-}
+	ZIP_NAME=$KERNELNAME-$1-$COMMIT_SHA-$(date +%Y-%m-%d_%H%M)-UTC
+	zip -r9 "$ZIP_NAME".zip ./* -x .git README.md ./*placeholder
 
-# tg_buildtime - send build time through tg
-tg_buildtime() {
-	tg_sendinfo "Time taken: <code>$((DIFF / 60))m $((DIFF % 60))s</code>"
+	# Sign zip if java is available
+	if command -v java > /dev/null 2>&1; then
+		curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/baalajimaestro/AnyKernel2/master/zipsigner-3.0.jar
+		java -jar zipsigner-3.0.jar "$ZIP_NAME".zip "$ZIP_NAME"-signed.zip
+		ZIP_NAME="$ZIP_NAME-signed.zip"
+	fi
+
+	tg_pushzip "$ZIP_NAME" "Time taken: <code>$((DIFF / 60))m $((DIFF % 60))s</code>"
+	echo -e "\n> Sent zip through Telegram.\n> File: $ZIP_NAME"
 }
 
 # End function definitions

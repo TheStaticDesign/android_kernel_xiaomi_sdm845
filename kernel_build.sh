@@ -90,8 +90,16 @@ build_end() {
 	cd "$AK_DIR" || echo -e "\nAnykernel directory ($AK_DIR) does not exist" || exit 1
 	git clean -fd
 	mv "$KERNEL_IMG" "$AK_DIR"/zImage
-	ZIP_NAME=$KERNELNAME-$1-$COMMIT_SHA-$(date +%Y-%m-%d_%H%M)-UTC.zip
-	zip -r9 "$ZIP_NAME" ./* -x .git README.md ./*placeholder
+	ZIP_NAME=$KERNELNAME-$1-$COMMIT_SHA-$(date +%Y-%m-%d_%H%M)-UTC
+	zip -r9 "$ZIP_NAME".zip ./* -x .git README.md ./*placeholder
+
+	# Sign zip if java is available
+	if command -v java > /dev/null 2>&1; then
+		curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/baalajimaestro/AnyKernel2/master/zipsigner-3.0.jar
+		java -jar zipsigner-3.0.jar "$ZIP_NAME".zip "$ZIP_NAME"-signed.zip
+		ZIP_NAME="$ZIP_NAME-signed.zip"
+	fi
+
 	tg_pushzip "$ZIP_NAME"
 	echo -e "\n> Sent zip through Telegram.\n> File: $ZIP_NAME"
 	tg_buildtime

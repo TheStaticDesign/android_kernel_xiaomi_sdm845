@@ -181,6 +181,13 @@ static struct em_perf_domain *em_create_pd(cpumask_t *span, int nr_states,
 	pd->nr_cap_states = nr_states;
 	cpumask_copy(to_cpumask(pd->cpus), span);
 
+
+	ret = kobject_init_and_add(&pd->kobj, &ktype_em_pd, em_kobject,
+							   "pd%u", cpu);
+	if (ret)
+		pr_err("pd%d: failed kobject_init_and_add(): %d\n", cpu, ret);
+
+
 	return pd;
 
 free_cs_table:

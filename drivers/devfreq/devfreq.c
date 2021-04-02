@@ -1186,8 +1186,6 @@ static ssize_t available_frequencies_show(struct device *d,
 	struct devfreq *df = to_devfreq(d);
 	struct device *dev = df->dev.parent;
 	struct dev_pm_opp *opp;
-	unsigned int i = 0, max_state = df->profile->max_state;
-	bool use_opp;
 	ssize_t count = 0;
 	unsigned long freq = 0;
 

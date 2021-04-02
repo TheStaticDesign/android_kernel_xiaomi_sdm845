@@ -472,7 +472,6 @@ static int tz_start(struct devfreq *devfreq)
 static int tz_stop(struct devfreq *devfreq)
 {
 	int i;
-	struct devfreq_msm_adreno_tz_data *priv = devfreq->data;
 
 	for (i = 0; adreno_tz_attr_list[i] != NULL; i++)
 		device_remove_file(&devfreq->dev, adreno_tz_attr_list[i]);

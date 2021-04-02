@@ -694,7 +694,6 @@ static int genpd_runtime_suspend(struct device *dev)
 		return -EBUSY;
 
 	/* Measure suspend latency. */
-	time_start = 0;
 	if (runtime_pm)
 		time_start = ktime_get();
 
@@ -776,7 +775,6 @@ static int genpd_runtime_resume(struct device *dev)
 
  out:
 	/* Measure resume latency. */
-	time_start = 0;
 	if (timed && runtime_pm)
 		time_start = ktime_get();
 
@@ -2632,7 +2630,7 @@ static int genpd_idle_states_show(struct seq_file *s, void *data)
 	seq_puts(s, "State          Time Spent(ms)\n");
 
 	for (i = 0; i < genpd->state_count; i++) {
-		ktime_t delta = 0;
+		ktime_t delta;
 		s64 msecs;
 
 		if ((genpd->status == GPD_STATE_POWER_OFF) &&
@@ -2651,7 +2649,7 @@ static int genpd_idle_states_show(struct seq_file *s, void *data)
 static int genpd_active_time_show(struct seq_file *s, void *data)
 {
 	struct generic_pm_domain *genpd = s->private;
-	ktime_t delta = 0;
+	ktime_t delta;
 	int ret = 0;
 
 	ret = genpd_lock_interruptible(genpd);
@@ -2671,7 +2669,7 @@ static int genpd_active_time_show(struct seq_file *s, void *data)
 static int genpd_total_idle_time_show(struct seq_file *s, void *data)
 {
 	struct generic_pm_domain *genpd = s->private;
-	ktime_t delta = 0, total = 0;
+	ktime_t delta, total;
 	unsigned int i;
 	int ret = 0;
 

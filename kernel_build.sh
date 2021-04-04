@@ -69,7 +69,7 @@ build_config() {
 build_kernel() {
 
     BUILD_START=$(date +"%s")
-    make -j $(($(($(nproc) / 2)) + 1))  O=out \
+    make -j$(nproc --all) O=out \
                 PATH="$TC_DIR/arm64/bin:$TC_DIR/arm/bin:$PATH" \
                 CROSS_COMPILE=$TC_DIR/arm64/bin/aarch64-elf- \
                 CROSS_COMPILE_ARM32=$TC_DIR/arm/bin/arm-eabi- |& tee $LOG

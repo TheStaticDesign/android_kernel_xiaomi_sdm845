@@ -5,7 +5,14 @@
 #include <linux/jump_label.h>
 #include <linux/kobject.h>
 #include <linux/rcupdate.h>
+
+// Dependencies were only split to sched/cpufreq.h after linux 4.10
+#include <linux/version.h>
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(4, 10, 0))
 #include <linux/sched/cpufreq.h>
+#else
+#include <linux/sched.h>
+#endif
 #include <linux/types.h>
 
 /**
